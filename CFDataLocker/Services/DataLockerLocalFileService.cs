@@ -1,73 +1,76 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.IO;
+﻿using System.IO;
 using CFUtilities.Encryption;
 using CFUtilities.XML;
 using CFDataLocker.Model;
+using CFDataLocker.Interfaces;
 
-namespace CFDataLocker
+namespace CFDataLocker.Services
 {
     /// <summary>
-    /// Maintains a locker of a document containing data items. The document is persisted as an
-    /// encrypted file that must be locked/unlocking using a key.
+    /// Data locker service using local file.
     /// </summary>
-    public class Locker
-    {
+    public class DataLockerLocalFileService : IDataLockerService
+    {        
         private string _filename;
 
-        public Locker(string filename)
+        public DataLockerLocalFileService(string filename)
         {
             _filename = filename;
         }
 
         /// <summary>
-        /// Unlocks the document using the specified key
+        /// Creates random key
         /// </summary>
-        /// <param name="key"></param>
+        /// <param name="maxLength"></param>
         /// <returns></returns>
-        public Document Unlock(string key)
+        public string CreateRandomKey()
         {
-            Document document = null;
-            string tempFile = Path.GetTempFileName();
+            return TripleDESEncryption.GenerateRandomKey(9);
+        }
+
+        public DataLocker Unlock(string key)
+        {
+            DataLocker dataLocker = null;
+            var tempFile = Path.GetTempFileName();
             try
             {               
-                string xml = TripleDESEncryption.DecryptString(File.ReadAllText(_filename), key);
+                var xml = TripleDESEncryption.DecryptString(File.ReadAllText(_filename), key);
                 File.WriteAllText(tempFile, xml);
-                document = XmlSerialization.DeserializeFromFile<Document>(tempFile);
+                dataLocker = XmlSerialization.DeserializeFromFile<DataLocker>(tempFile);
+
+                // Decode to readable format
+                dataLocker.Decode();
             }
-            catch(System.Exception exception)
+            catch
             {
-                // Ignore erorr, return no document
+                // Ignore error, return no locker
+                dataLocker = null;
             }
             finally
-            {
+            {                
                 if (File.Exists(tempFile))
                 {
                     File.Delete(tempFile);
                 }
             }
-            return document;
+            return dataLocker;
         }
-
-        /// <summary>
-        /// Locks the document using the specified key
-        /// </summary>
-        /// <param name="document"></param>
-        /// <param name="key"></param>
-        public void Lock(Document document, string key)
+        
+        public void Lock(DataLocker dataLocker, string key)
         {        
-            string tempFile = Path.GetTempFileName();     
+            var tempFile = Path.GetTempFileName();     
 
             try
-            {             
-                XmlSerialization.SerializeToFile<Document>(document, tempFile);              
+            {
+                // Clone document & encode to storable format
+                var dataLockerCopy = (DataLocker)dataLocker.Clone();
+                dataLockerCopy.Encode();
+
+                XmlSerialization.SerializeToFile<DataLocker>(dataLockerCopy, tempFile);              
                 string data = TripleDESEncryption.EncryptString(File.ReadAllText(tempFile), key);
 
                 // Create backup if data changes
-                string oldData = "";              
+                var oldData = "";              
                 if (File.Exists(_filename))
                 {
                     oldData = File.ReadAllText(_filename);
@@ -80,7 +83,7 @@ namespace CFDataLocker
                 // Save if different
                 if (data != oldData)
                 {
-                    File.WriteAllText(_filename, data);
+                    File.WriteAllText(_filename, data);                    
                 }
             }
             finally
@@ -100,7 +103,7 @@ namespace CFDataLocker
         private void Backup(string lockFile)
         {
             int count = 0;
-            string backupFile = "";
+            var backupFile = "";
             do
             {
                 count++;

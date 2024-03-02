@@ -1,16 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
-using System.Data;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using CFDataLocker.Model;
 
 namespace CFDataLocker
 {
+    /// <summary>
+    /// Control for viewing or changing Group
+    /// </summary>
     public partial class GroupUserControl : UserControl
     {
         private Group _group;
@@ -35,7 +33,26 @@ namespace CFDataLocker
 
         public void ApplyChanges()
         {
+            if (ValidateBeforeApplyChanges().Any())
+            {
+                throw new ApplicationException("Cannot apply changes if there are validation errors");
+            }
+
             ViewToModel(_group);
+        }
+        
+        public List<PropertyMessage> ValidateBeforeApplyChanges()
+        {
+            var messages = new List<PropertyMessage>();
+
+            var group = new Group();
+            ViewToModel(group);
+            if (String.IsNullOrEmpty(group.Description))
+            {
+                messages.Add(new PropertyMessage(nameof(group.Description), "Description is invalid or not set"));
+            }
+
+            return messages;
         }
 
         private void ModelToView(Group group)
@@ -46,7 +63,6 @@ namespace CFDataLocker
         private void ViewToModel(Group group)
         {
             group.Description = txtDescription.Text;
-        }
-        
+        }        
     }
 }

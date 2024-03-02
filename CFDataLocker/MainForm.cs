@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
+using CFDataLocker.Interfaces;
 using CFDataLocker.Model;
+using CFDataLocker.Services;
+using CFUtilities;
 
 namespace CFDataLocker
 {
@@ -20,66 +19,64 @@ namespace CFDataLocker
             DataItem = 1
         }
 
-        private Locker _locker = null;
+        private IDataLockerService _dataLockerService = null;
+        private DataLocker _dataLocker = null;
         private TreeNode _currentSelected = null;
 
         public MainForm()
         {
             InitializeComponent();
-          
-            _locker = new Locker(Path.Combine(Environment.CurrentDirectory, "Data.bin"));
-            ShowLocked();
 
-            txtKey.Text = "Q(S;3CMpe";
+            // Set lock file
+            var lockerFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "My Data Locker.locker");
+            _dataLockerService = new DataLockerLocalFileService(lockerFile);
 
-            //CreateEmptyDocument("Q(S;3CMpe");
+            // If lock file doesn't exist then create file with single default group
+            if (!File.Exists(lockerFile))
+            {
+                var key = _dataLockerService.CreateRandomKey();
+                CreateEmptyLocker(lockerFile, key);
+                txtKey.Text = key;
+
+                MessageBox.Show($"A new locker key has been created and copied to the clipboard.\nPlease save the key.", "New Key");
+                Clipboard.SetText(key);
+            }
+            
+            ShowLocked();                      
         }
 
-        private Document CreateEmptyDocument(string csvFile, string key)
-        {     
-            Document document = new Document();
-            Group group = new Group()
+        /// <summary>
+        /// Creates empty locker
+        /// </summary>
+        /// <param name="lockFile"></param>
+        /// <param name="key"></param>
+        private void CreateEmptyLocker(string lockerFile, string key)
+        {            
+            DataLocker dataLocker = new DataLocker();
+            var group = new Group()
             {
                 ID = Guid.NewGuid().ToString(),
                 Description = "Default"
             };
-            document.Groups.Add(group);
+            dataLocker.Name = Path.GetFileNameWithoutExtension(lockerFile);
+            dataLocker.Groups = new List<Group>() { group };
 
-            if (!String.IsNullOrEmpty(csvFile))
-            {
-                using (StreamReader reader = new StreamReader(csvFile, true))
-                {
-                    while (!reader.EndOfStream)
-                    {
-                        string[] values = reader.ReadLine().Split((Char)9);
-                        DataItem dataItem = new DataItem()
-                        {
-                            ID = Guid.NewGuid().ToString(),
-                            GroupID = group.ID,
-                            Credentials = new Credentials()
-                            {
-                                UserName = values[0].Trim(),
-                                Password = values[1].Trim()
-                            },
-                            Contact = new Contact(),                            
-                            Description = values[2].Trim(), 
-                            Active = true
-                        };
-                        document.DataItems.Add(dataItem);
-                    }
-                }
-            }
+            //var dataItem = new DataItem()
+            //{   
+            //    ID = Guid.NewGuid().ToString(),
+            //    Contact = new Contact(),
+            //    Credentials = new Credentials(),
+            //    Description = "[New]",
+            //    Active = true,
+            //    Notes = "Notes",                
+            //};
+            dataLocker.DataItems = new List<DataItem>();
 
-            _locker.Lock(document, key);
-            return document;
+            //var lockService = new DataLockerLocalFileService(lockFile);
+            _dataLockerService.Lock(dataLocker, key);          
         }
 
-        /// <summary>
-        /// Returns node type
-        /// </summary>
-        /// <param name="node"></param>
-        /// <returns></returns>
-        private NodeTypes GetNodeType(TreeNode node)
+        private static NodeTypes GetNodeType(TreeNode node)
         {
             if (node.Name.StartsWith("Group."))
             {
@@ -96,7 +93,7 @@ namespace CFDataLocker
         /// Converts Document model to view
         /// </summary>
         /// <param name="document"></param>
-        private void ModelToView(Document document)
+        private void ModelToView(DataLocker document)
         {
             tvwData.Nodes.Clear();
             foreach (Group group in document.Groups)
@@ -112,11 +109,13 @@ namespace CFDataLocker
             }
         }
 
-        private void ViewToModel(Document document)
+        private void ViewToModel(DataLocker document)
         {        
+            // Clear existing groups & data items
             document.Groups.Clear();
             document.DataItems.Clear();
 
+            // Add groups and data items
             foreach (TreeNode nodeGroup in tvwData.Nodes)
             {
                 Group group = (Group)nodeGroup.Tag;
@@ -127,6 +126,7 @@ namespace CFDataLocker
                     document.DataItems.Add(dataItem);
                 }
             }
+            document.Groups.Sort((x, y) => x.Description.CompareTo(y.Description));
             document.DataItems.Sort((x, y) => x.Description.CompareTo(y.Description));
         }
         
@@ -137,8 +137,8 @@ namespace CFDataLocker
         {
             if (!String.IsNullOrEmpty(txtKey.Text))
             {
-                Document document = _locker.Unlock(txtKey.Text);
-                if (document == null)   // Failed to unlock
+                _dataLocker = _dataLockerService.Unlock(txtKey.Text);
+                if (_dataLocker == null)   // Failed to unlock
                 {
                     ShowLocked();
                     MessageBox.Show("Key is invalid", "Unlock");
@@ -146,35 +146,104 @@ namespace CFDataLocker
                 else     // Unlocked
                 {
                     ShowUnlocked();
-                    ModelToView(document);                    
+                    ModelToView(_dataLocker);                    
                 }
             }
         }
 
+        /// <summary>
+        /// Show UI state as locker locked
+        /// </summary>
         private void ShowLocked()
         {
+            this.Text = "Data Locker";
+
+            _currentSelected = null;
             tvwData.Nodes.Clear();
             groupUserControl1.Visible = false;
             dataItemUserControl1.Visible = false;
             tsbLock.Text = "Unlock";
-            txtKey.Text = "";
+            txtKey.Enabled = true;  // Allow change key          
             tsbImportDataItems.Visible = false;
-        }
-
-        private void ShowUnlocked()
-        {
-            tsbLock.Text = "Lock";
-            tsbImportDataItems.Visible = true;            
+            tsbExportDataItems.Visible = false;
         }
 
         /// <summary>
-        ///  Locks the document
+        /// Show UI state as locked unlocked
+        /// </summary>
+        private void ShowUnlocked()
+        {
+            this.Text = $"Data Locker - [{_dataLocker.Name}]";
+
+            _currentSelected = null;
+            txtKey.Enabled = false;  // Prevent change key
+            tsbLock.Text = "Lock";
+            tsbImportDataItems.Visible = true;
+            tsbExportDataItems.Visible = true;
+        }
+
+        /// <summary>
+        /// Applies changes from currently selected item
+        /// </summary>
+        /// <param name="e"></param>
+        /// <returns>Whether changes applies (False: Validation error)</returns>
+        private bool ApplyCurrentChanges(TreeViewCancelEventArgs e = null)
+        {
+            NodeTypes nodeType = GetNodeType(_currentSelected);
+            switch (nodeType)
+            {
+                case NodeTypes.Group:
+                    {
+                        // Validate before apply changes
+                        var messages = groupUserControl1.ValidateBeforeApplyChanges();
+                        if (messages.Any())    // Display validation error and abort
+                        {
+                            MessageBox.Show(messages[0].Text, "Error");
+                            if (e != null) e.Cancel = true; 
+                            return false;
+                        }
+                        else
+                        {
+                            groupUserControl1.ApplyChanges();
+                            _currentSelected.Text = groupUserControl1.Group.Description;
+                        }
+                    }
+                    break;
+                case NodeTypes.DataItem:
+                    {
+                        // Validate before apply changes
+                        var messages = dataItemUserControl1.ValidateBeforeApplyChanges();
+                        if (messages.Any()) // Display validation error and abort
+                        {
+                            MessageBox.Show(messages[0].Text, "Error");
+                            if (e != null) e.Cancel = true;
+                            return false;
+                        }
+                        else
+                        {
+                            dataItemUserControl1.ApplyChanges();
+                            _currentSelected.Text = dataItemUserControl1.DataItem.Description;
+                        }
+                    }
+                    break;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Locks the document. Fails if there are invalid current changes.
         /// </summary>
         private void Lock()
         {
-            Document document = new Document();
-            ViewToModel(document);            
-            _locker.Lock(document, txtKey.Text);
+            // Apply changes to currently selected node if any. Abort if validation error
+            if (_currentSelected != null)
+            {
+                if (!ApplyCurrentChanges()) return;
+            }
+
+            ViewToModel(_dataLocker);            
+            _dataLockerService.Lock(_dataLocker, txtKey.Text);
             ShowLocked();
         }
 
@@ -200,22 +269,15 @@ namespace CFDataLocker
         }
 
         private void tvwData_BeforeSelect(object sender, TreeViewCancelEventArgs e)
-        {
+        {            
+            // Apply changes to currently selected node if any. Will fail if validation issues that need to be
+            // resolved.
             if (_currentSelected != null)
             {
-                NodeTypes nodeType = GetNodeType(_currentSelected);
-                switch(nodeType)
+                if (ApplyCurrentChanges(e))     // Changes applied
                 {
-                    case NodeTypes.Group:
-                        groupUserControl1.ApplyChanges();
-                        _currentSelected.Text = groupUserControl1.Group.Description;
-                        break;
-                    case NodeTypes.DataItem:
-                        dataItemUserControl1.ApplyChanges();
-                        _currentSelected.Text = dataItemUserControl1.DataItem.Description;
-                        break;
+                    _currentSelected = null;
                 }
-                _currentSelected = null;
             }
         }
 
@@ -231,7 +293,6 @@ namespace CFDataLocker
                     break;
             }
         }
-
         private TreeNode AddGroup(Group group)
         {
                 
@@ -346,75 +407,39 @@ namespace CFDataLocker
             };
             if (fileDialog.ShowDialog() == DialogResult.OK)
             {
-                if (MessageBox.Show("Do you want to import this file?", "Import", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                if (MessageBox.Show("Do you want to import this file and replace all data?", "Import", MessageBoxButtons.YesNo) == DialogResult.Yes)
                 {
-                    ImportDataItems(fileDialog.FileName);
+                    try
+                    {
+                        var importer = new DataLockerImporterCSV(fileDialog.FileName);
+                        importer.Import(_dataLocker);
 
-                    MessageBox.Show("File has been imported", "Import");
+                        // Display
+                        ShowUnlocked();
+                        ModelToView(_dataLocker);
+
+                        MessageBox.Show("File has been imported", "Import");
+                    }
+                    catch(Exception exception)
+                    {
+                        MessageBox.Show($"There was an error importing the file:\n{exception.Message}", "Error", MessageBoxButtons.OK);
+                    }
                 }
             }
         }
 
-        /// <summary>
-        /// Imports data items from file
-        /// </summary>
-        /// <param name="inputFile"></param>
-        private void ImportDataItems(string inputFile)
+        private void tsbExportDataItems_Click(object sender, EventArgs e)
         {
-            // Read CSV file
-            var csvFile = new CFUtilities.CSV.CSVFile();
-            var csvSettings = new CFUtilities.CSV.CSVSettings(inputFile, (Char)9, false, false);
-            var dataTable = csvFile.Read(csvSettings, null);
-
-            // Clear existing data
-            tvwData.Nodes.Clear();
-
-            // Create list of groups
-            List<string> groupNames = CFUtilities.DataTableUtilities.GetDistinctValues<string>(dataTable, "Group");
-            Dictionary<string, TreeNode> nodeGroups = new Dictionary<string, TreeNode>();
-
-            foreach (string groupName in groupNames)
+            if (_dataLocker != null)
             {
-                Group group = new Group()
-                {
-                    ID = Guid.NewGuid().ToString(),
-                    Description = groupName
-                };
-                TreeNode nodeGroup = AddGroup(group);
-                nodeGroups.Add(groupName, nodeGroup);
-            }
-             
-            // Create data items
-            for (int rowIndex = 0; rowIndex < dataTable.Rows.Count; rowIndex++)
-            {
-                // Get group
-                TreeNode nodeGroup = nodeGroups[dataTable.Rows[rowIndex]["Group"].ToString()];
-                Group group = (Group)nodeGroup.Tag;
+                // Export data locker
+                var file = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), $"{_dataLocker.Name}.txt");
+                var exporter = new DataLockerExporterCSV('\t', file, System.Text.Encoding.UTF8);
+                exporter.Export(_dataLocker);
 
-                // Add data item
-                DataItem dataItem = new DataItem()
-                {
-                    Description = dataTable.Rows[rowIndex]["Description"].ToString(),
-                    GroupID = group.ID,
-                    ID = Guid.NewGuid().ToString(),
-                    Notes = dataTable.Rows[rowIndex]["Notes"].ToString(),
-                    URL = dataTable.Rows[rowIndex]["URL"].ToString(),
-                    AccountNumber = dataTable.Rows[rowIndex]["AccountNumber"].ToString(),
-                    Credentials = new Credentials()
-                    {
-                        Password = dataTable.Rows[rowIndex]["Password"].ToString(),
-                        UserName = dataTable.Rows[rowIndex]["UserName"].ToString()
-                    },                    
-                    Contact = new Contact()
-                    {
-                        Name = dataTable.Rows[rowIndex]["ContactName"].ToString(),
-                        EmailAddress = dataTable.Rows[rowIndex]["ContactEmail"].ToString(),
-                        Telephone = dataTable.Rows[rowIndex]["ContactTelephone"].ToString()
-                    },
-                    Active = true
-                };
-
-                AddDataItem(nodeGroup, dataItem);
+                // Open folder where file exported to
+                IOUtilities.OpenDirectoryWithExplorer(Path.GetDirectoryName(file));
+                //IOUtilities.OpenFileWithDefaultTextEditor(file);
             }
         }
     }

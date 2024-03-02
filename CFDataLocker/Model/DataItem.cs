@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using CFUtilities;
+using System;
 using System.Xml.Serialization;
 
 namespace CFDataLocker.Model
@@ -65,6 +62,44 @@ namespace CFDataLocker.Model
         /// Whether data item is active
         /// </summary>
         [XmlAttribute("Active")]
-        public bool Active { get; set; }
+        public bool Active { get; set; }       
+
+        public object Clone()
+        {
+            return new DataItem()
+            {
+                AccountNumber = AccountNumber,
+                Active = Active, 
+                Contact = Contact == null ? null : (Contact)Contact.Clone(),
+                Credentials = Credentials == null ? null : (Credentials)Credentials.Clone(),
+                Description = Description,
+                GroupID = GroupID,
+                ID = ID,
+                Notes = Notes,
+                URL = URL                
+            };
+        }
+        
+        public void Encode()
+        {
+            AccountNumber = String.IsNullOrEmpty(AccountNumber) ? AccountNumber : StringUtilities.EncodeToBase64(AccountNumber);
+            Description = String.IsNullOrEmpty(Description) ? Description : StringUtilities.EncodeToBase64(Description);
+            Notes = String.IsNullOrEmpty(Notes) ? Notes : StringUtilities.EncodeToBase64(Notes);
+            URL = String.IsNullOrEmpty(URL) ? URL : StringUtilities.EncodeToBase64(URL);
+
+            Credentials?.Encode();
+            Contact?.Encode();
+        }
+        
+        public void Decode()
+        {
+            AccountNumber = String.IsNullOrEmpty(AccountNumber) ? AccountNumber : StringUtilities.DecodeFromBase64(AccountNumber);
+            Description = String.IsNullOrEmpty(Description) ? Description : StringUtilities.DecodeFromBase64(Description);
+            Notes = String.IsNullOrEmpty(Notes) ? Notes : StringUtilities.DecodeFromBase64(Notes);
+            URL = String.IsNullOrEmpty(URL) ? URL : StringUtilities.DecodeFromBase64(URL);
+
+            Credentials?.Decode();
+            Contact?.Decode();       
+        }
     }
 }
