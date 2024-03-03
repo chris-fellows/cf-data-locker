@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
-using CFDataLocker.Model;
+using CFDataLocker.Models;
 
-namespace CFDataLocker
+namespace CFDataLocker.Controls
 {
     /// <summary>
     /// Control for viewing or changing Group
@@ -40,7 +40,7 @@ namespace CFDataLocker
 
             ViewToModel(_group);
         }
-        
+
         public List<PropertyMessage> ValidateBeforeApplyChanges()
         {
             var messages = new List<PropertyMessage>();
@@ -63,6 +63,6 @@ namespace CFDataLocker
         private void ViewToModel(Group group)
         {
             group.Description = txtDescription.Text;
-        }        
+        }
     }
 }

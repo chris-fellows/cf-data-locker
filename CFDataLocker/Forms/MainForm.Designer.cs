@@ -1,4 +1,6 @@
-﻿namespace CFDataLocker
+﻿using CFDataLocker.Controls;
+
+namespace CFDataLocker.Forms
 {
     partial class MainForm
     {
@@ -42,8 +44,8 @@
             this.addDataItemToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteDataItemToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteGroupToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.dataItemUserControl1 = new CFDataLocker.DataItemUserControl();
-            this.groupUserControl1 = new CFDataLocker.GroupUserControl();
+            this.dataItemUserControl1 = new CFDataLocker.Controls.DataItemUserControl();
+            this.groupUserControl1 = new CFDataLocker.Controls.GroupUserControl();
             this.toolStrip1.SuspendLayout();
             this.cmsMenu.SuspendLayout();
             this.SuspendLayout();

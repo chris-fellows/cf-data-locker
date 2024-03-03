@@ -1,6 +1,6 @@
 ﻿using System.Xml.Serialization;
 
-namespace CFDataLocker.Model
+namespace CFDataLocker.Models
 {
     /// <summary>
     /// Group for data items

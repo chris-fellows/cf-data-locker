@@ -4,13 +4,17 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using System.IO;
+using CFDataLocker.Controls;
 using CFDataLocker.Interfaces;
-using CFDataLocker.Model;
+using CFDataLocker.Models;
 using CFDataLocker.Services;
 using CFUtilities;
 
-namespace CFDataLocker
+namespace CFDataLocker.Forms
 {
+    /// <summary>
+    /// Main form
+    /// </summary>
     public partial class MainForm : Form
     {
         private enum NodeTypes : byte

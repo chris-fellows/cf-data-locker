@@ -1,5 +1,5 @@
 ﻿using CFDataLocker.Interfaces;
-using CFDataLocker.Model;
+using CFDataLocker.Models;
 using CFUtilities.CSV;
 using System;
 using System.Collections.Generic;

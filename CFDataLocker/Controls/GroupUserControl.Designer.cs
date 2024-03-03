@@ -1,4 +1,4 @@
-﻿namespace CFDataLocker
+﻿namespace CFDataLocker.Controls
 {
     partial class GroupUserControl
     {

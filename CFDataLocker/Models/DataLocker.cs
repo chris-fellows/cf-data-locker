@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Serialization;
 
-namespace CFDataLocker.Model
+namespace CFDataLocker.Models
 {
     /// <summary>
     /// Locker for data items

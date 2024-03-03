@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using CFDataLocker.Interfaces;
-using CFDataLocker.Model;
+using CFDataLocker.Models;
 
 namespace CFDataLocker.Services
 {

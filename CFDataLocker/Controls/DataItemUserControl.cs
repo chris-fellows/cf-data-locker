@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
-using CFDataLocker.Model;
+using CFDataLocker.Models;
 
-namespace CFDataLocker
+namespace CFDataLocker.Controls
 {
     /// <summary>
     /// Control for viewing or changing DataItem

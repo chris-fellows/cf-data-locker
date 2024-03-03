@@ -1,4 +1,4 @@
-﻿using CFDataLocker.Model;
+﻿using CFDataLocker.Models;
 
 namespace CFDataLocker.Interfaces
 {

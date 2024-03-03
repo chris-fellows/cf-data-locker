@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using CFUtilities.Encryption;
 using CFUtilities.XML;
-using CFDataLocker.Model;
+using CFDataLocker.Models;
 using CFDataLocker.Interfaces;
 
 namespace CFDataLocker.Services

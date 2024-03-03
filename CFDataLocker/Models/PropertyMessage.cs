@@ -1,4 +1,4 @@
-﻿namespace CFDataLocker.Model
+﻿namespace CFDataLocker.Models
 {
     /// <summary>
     /// Message associated with a property
