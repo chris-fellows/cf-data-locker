@@ -46,6 +46,7 @@ namespace CFDataLocker.Forms
             this.deleteGroupToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.dataItemUserControl1 = new CFDataLocker.Controls.DataItemUserControl();
             this.groupUserControl1 = new CFDataLocker.Controls.GroupUserControl();
+            this.moveToGroupToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStrip1.SuspendLayout();
             this.cmsMenu.SuspendLayout();
             this.SuspendLayout();
@@ -87,7 +88,7 @@ namespace CFDataLocker.Forms
             this.tsbExportDataItems});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(641, 25);
+            this.toolStrip1.Size = new System.Drawing.Size(698, 25);
             this.toolStrip1.TabIndex = 5;
             this.toolStrip1.Text = "toolStrip1";
             // 
@@ -135,28 +136,29 @@ namespace CFDataLocker.Forms
             this.cmsMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.addDataItemToolStripMenuItem,
             this.deleteDataItemToolStripMenuItem,
-            this.deleteGroupToolStripMenuItem});
+            this.deleteGroupToolStripMenuItem,
+            this.moveToGroupToolStripMenuItem});
             this.cmsMenu.Name = "cmsMenu";
-            this.cmsMenu.Size = new System.Drawing.Size(161, 70);
+            this.cmsMenu.Size = new System.Drawing.Size(181, 114);
             // 
             // addDataItemToolStripMenuItem
             // 
             this.addDataItemToolStripMenuItem.Name = "addDataItemToolStripMenuItem";
-            this.addDataItemToolStripMenuItem.Size = new System.Drawing.Size(160, 22);
+            this.addDataItemToolStripMenuItem.Size = new System.Drawing.Size(162, 22);
             this.addDataItemToolStripMenuItem.Text = "Add data item";
             this.addDataItemToolStripMenuItem.Click += new System.EventHandler(this.addDataItemToolStripMenuItem_Click);
             // 
             // deleteDataItemToolStripMenuItem
             // 
             this.deleteDataItemToolStripMenuItem.Name = "deleteDataItemToolStripMenuItem";
-            this.deleteDataItemToolStripMenuItem.Size = new System.Drawing.Size(160, 22);
+            this.deleteDataItemToolStripMenuItem.Size = new System.Drawing.Size(162, 22);
             this.deleteDataItemToolStripMenuItem.Text = "Delete data item";
             this.deleteDataItemToolStripMenuItem.Click += new System.EventHandler(this.deleteDataItemToolStripMenuItem_Click);
             // 
             // deleteGroupToolStripMenuItem
             // 
             this.deleteGroupToolStripMenuItem.Name = "deleteGroupToolStripMenuItem";
-            this.deleteGroupToolStripMenuItem.Size = new System.Drawing.Size(160, 22);
+            this.deleteGroupToolStripMenuItem.Size = new System.Drawing.Size(162, 22);
             this.deleteGroupToolStripMenuItem.Text = "Delete group";
             this.deleteGroupToolStripMenuItem.Click += new System.EventHandler(this.deleteGroupToolStripMenuItem_Click);
             // 
@@ -165,8 +167,9 @@ namespace CFDataLocker.Forms
             this.dataItemUserControl1.DataItem = null;
             this.dataItemUserControl1.Location = new System.Drawing.Point(274, 61);
             this.dataItemUserControl1.Name = "dataItemUserControl1";
-            this.dataItemUserControl1.Size = new System.Drawing.Size(364, 449);
+            this.dataItemUserControl1.Size = new System.Drawing.Size(425, 449);
             this.dataItemUserControl1.TabIndex = 9;
+            this.dataItemUserControl1.Load += new System.EventHandler(this.dataItemUserControl1_Load);
             // 
             // groupUserControl1
             // 
@@ -176,11 +179,17 @@ namespace CFDataLocker.Forms
             this.groupUserControl1.Size = new System.Drawing.Size(360, 42);
             this.groupUserControl1.TabIndex = 8;
             // 
+            // moveToGroupToolStripMenuItem
+            // 
+            this.moveToGroupToolStripMenuItem.Name = "moveToGroupToolStripMenuItem";
+            this.moveToGroupToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.moveToGroupToolStripMenuItem.Text = "Move to group...";
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(641, 521);
+            this.ClientSize = new System.Drawing.Size(698, 517);
             this.Controls.Add(this.dataItemUserControl1);
             this.Controls.Add(this.groupUserControl1);
             this.Controls.Add(this.toolStrip1);
@@ -217,6 +226,7 @@ namespace CFDataLocker.Forms
         private GroupUserControl groupUserControl1;
         private System.Windows.Forms.ToolStripButton tsbExportDataItems;
         private DataItemUserControl dataItemUserControl1;
+        private System.Windows.Forms.ToolStripMenuItem moveToGroupToolStripMenuItem;
     }
 }
 

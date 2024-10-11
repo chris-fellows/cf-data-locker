@@ -161,10 +161,42 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Controls\AddressControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Controls\AddressControl.Designer.cs">
+      <DependentUpon>AddressControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\ContactControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Controls\ContactControl.Designer.cs">
+      <DependentUpon>ContactControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\CredentialsControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Controls\CredentialsControl.Designer.cs">
+      <DependentUpon>CredentialsControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\BankCardControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Controls\BankCardControl.Designer.cs">
+      <DependentUpon>BankCardControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\SecurityQuestionsControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Controls\SecurityQuestionsControl.Designer.cs">
+      <DependentUpon>SecurityQuestionsControl.cs</DependentUpon>
+    </Compile>
     <Compile Include="Interfaces\IDataLockerExporter.cs" />
     <Compile Include="Interfaces\IDataLockerImporter.cs" />
     <Compile Include="Interfaces\IDataLockerService.cs" />
+    <Compile Include="Models\Address.cs" />
     <Compile Include="Models\Contact.cs" />
+    <Compile Include="Models\BankCard.cs" />
     <Compile Include="Models\DataItem.cs" />
     <Compile Include="Controls\DataItemUserControl.cs">
       <SubType>UserControl</SubType>
@@ -187,17 +219,35 @@
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Models\PropertyMessage.cs" />
+    <Compile Include="Models\SecurityQuestion.cs" />
+    <Compile Include="Models\SecurityQuestions.cs" />
     <Compile Include="Services\DataLockerLocalFileService.cs" />
     <Compile Include="Models\Credentials.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\DataLockerExporterCSV.cs" />
     <Compile Include="Services\DataLockerImporterCSV.cs" />
+    <Compile Include="Utilities\DataAnnotationUtilities.cs" />
+    <EmbeddedResource Include="Controls\AddressControl.resx">
+      <DependentUpon>AddressControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Controls\ContactControl.resx">
+      <DependentUpon>ContactControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Controls\CredentialsControl.resx">
+      <DependentUpon>CredentialsControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Controls\BankCardControl.resx">
+      <DependentUpon>BankCardControl.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Controls\DataItemUserControl.resx">
       <DependentUpon>DataItemUserControl.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Controls\GroupUserControl.resx">
       <DependentUpon>GroupUserControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Controls\SecurityQuestionsControl.resx">
+      <DependentUpon>SecurityQuestionsControl.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>

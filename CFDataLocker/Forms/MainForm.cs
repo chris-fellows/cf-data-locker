@@ -45,8 +45,8 @@ namespace CFDataLocker.Forms
                 MessageBox.Show($"A new locker key has been created and copied to the clipboard.\nPlease save the key.", "New Key");
                 Clipboard.SetText(key);
             }
-            
-            ShowLocked();                      
+
+            ShowLocked();
         }
 
         /// <summary>
@@ -55,7 +55,7 @@ namespace CFDataLocker.Forms
         /// <param name="lockFile"></param>
         /// <param name="key"></param>
         private void CreateEmptyLocker(string lockerFile, string key)
-        {            
+        {
             DataLocker dataLocker = new DataLocker();
             var group = new Group()
             {
@@ -77,7 +77,7 @@ namespace CFDataLocker.Forms
             dataLocker.DataItems = new List<DataItem>();
 
             //var lockService = new DataLockerLocalFileService(lockFile);
-            _dataLockerService.Lock(dataLocker, key);          
+            _dataLockerService.Lock(dataLocker, key);
         }
 
         private static NodeTypes GetNodeType(TreeNode node)
@@ -91,6 +91,58 @@ namespace CFDataLocker.Forms
                 return NodeTypes.DataItem;
             }
             throw new ArgumentException("Invalid node type");
+        }
+
+        /// <summary>
+        /// Returns TreeNode for group
+        /// </summary>
+        /// <param name="group"></param>
+        /// <returns></returns>
+        private TreeNode GetTreeNodeForGroup(Group group)
+        {
+            foreach(TreeNode treeNode in tvwData.Nodes)
+            {
+                if (GetNodeType(treeNode) == NodeTypes.Group)
+                {
+                    var currentGroup = (Group)treeNode.Tag;
+                    if (currentGroup.ID == group.ID)
+                    {
+                        return treeNode;
+                    }
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Returns TreeNode for group
+        /// </summary>
+        /// <param name="group"></param>
+        /// <returns></returns>
+        private TreeNode GetTreeNodeForDataItem(DataItem dataItem)
+        {
+            foreach (TreeNode treeNode in tvwData.Nodes)
+            {
+                if (GetNodeType(treeNode) == NodeTypes.Group)
+                {
+                    var currentGroup = (Group)treeNode.Tag;
+                    if (currentGroup.ID == dataItem.GroupID)    // Group found
+                    {
+                        foreach(TreeNode childNode in treeNode.Nodes)
+                        {
+                            if (GetNodeType(childNode) == NodeTypes.DataItem)
+                            {
+                                DataItem childDataItem = (DataItem)childNode.Tag;
+                                if (childDataItem.ID == dataItem.ID)
+                                {
+                                    return childNode;
+                                }
+                            }                                   
+                        }
+                    }
+                }
+            }
+            return null;
         }
 
         /// <summary>
@@ -114,7 +166,7 @@ namespace CFDataLocker.Forms
         }
 
         private void ViewToModel(DataLocker document)
-        {        
+        {
             // Clear existing groups & data items
             document.Groups.Clear();
             document.DataItems.Clear();
@@ -133,7 +185,7 @@ namespace CFDataLocker.Forms
             document.Groups.Sort((x, y) => x.Description.CompareTo(y.Description));
             document.DataItems.Sort((x, y) => x.Description.CompareTo(y.Description));
         }
-        
+
         /// <summary>
         /// Unlocks the document
         /// </summary>
@@ -150,7 +202,7 @@ namespace CFDataLocker.Forms
                 else     // Unlocked
                 {
                     ShowUnlocked();
-                    ModelToView(_dataLocker);                    
+                    ModelToView(_dataLocker);
                 }
             }
         }
@@ -203,7 +255,7 @@ namespace CFDataLocker.Forms
                         if (messages.Any())    // Display validation error and abort
                         {
                             MessageBox.Show(messages[0].Text, "Error");
-                            if (e != null) e.Cancel = true; 
+                            if (e != null) e.Cancel = true;
                             return false;
                         }
                         else
@@ -246,7 +298,7 @@ namespace CFDataLocker.Forms
                 if (!ApplyCurrentChanges()) return;
             }
 
-            ViewToModel(_dataLocker);            
+            ViewToModel(_dataLocker);
             _dataLockerService.Lock(_dataLocker, txtKey.Text);
             ShowLocked();
         }
@@ -273,7 +325,7 @@ namespace CFDataLocker.Forms
         }
 
         private void tvwData_BeforeSelect(object sender, TreeViewCancelEventArgs e)
-        {            
+        {
             // Apply changes to currently selected node if any. Will fail if validation issues that need to be
             // resolved.
             if (_currentSelected != null)
@@ -299,7 +351,7 @@ namespace CFDataLocker.Forms
         }
         private TreeNode AddGroup(Group group)
         {
-                
+
             TreeNode nodeGroup = tvwData.Nodes.Add(string.Format("Group.{0}", group.ID), group.Description);
             nodeGroup.Tag = group;
 
@@ -314,12 +366,12 @@ namespace CFDataLocker.Forms
                 ID = Guid.NewGuid().ToString(),
                 Description = "[New]"
             };
-            AddGroup(group); 
+            AddGroup(group);
         }
 
         private void AddDataItem(TreeNode nodeGroup, DataItem dataItem)
         {
-            Group group = (Group)nodeGroup.Tag;           
+            Group group = (Group)nodeGroup.Tag;
 
             TreeNode nodeDataItem = nodeGroup.Nodes.Add(string.Format("DataItem.{0}", dataItem.ID), dataItem.Description);
             nodeDataItem.Tag = dataItem;
@@ -332,7 +384,7 @@ namespace CFDataLocker.Forms
             {
                 // Only display context menu if they right-clicked on selected node, not anywhere on control
                 if (tvwData.GetNodeAt(e.X, e.Y) == tvwData.SelectedNode)
-                {   
+                {
                     PrepareContextMenu();
                     cmsMenu.Show(tvwData, e.Location);
                 }
@@ -346,14 +398,81 @@ namespace CFDataLocker.Forms
             bool isDataItem = nodeType == NodeTypes.DataItem;
             addDataItemToolStripMenuItem.Visible = isGroup;
             deleteDataItemToolStripMenuItem.Visible = isDataItem;
+            moveToGroupToolStripMenuItem.Visible = isDataItem;
             deleteGroupToolStripMenuItem.Visible = isGroup;
+
+            // Set groups to move to
+            moveToGroupToolStripMenuItem.DropDownItems.Clear();
+            foreach (var group in _dataLocker.Groups)
+            {
+                EventHandler menuClick = ((sender, e) => {
+                    NodeTypes currentNodeType = GetNodeType(tvwData.SelectedNode);
+                    if (currentNodeType == NodeTypes.DataItem)
+                    {
+                        if (MessageBox.Show($"Move {SelectedDataItem.Description} to {group.Description}?", "Move", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                        {
+                            MoveDataItemToGroup(SelectedDataItem, group);
+                        }
+                    }
+                });
+
+                ToolStripMenuItem menuItem = new ToolStripMenuItem(group.Description, null, menuClick);
+                moveToGroupToolStripMenuItem.DropDownItems.Add(menuItem);
+            }
         }
+
+        private void MoveDataItemToGroup(DataItem dataItem, Group destinationGroup)
+        {
+            if (dataItem.GroupID != destinationGroup.ID)
+            {                
+                // Get source data item tree nodes
+                var sourceGroupNode = GetTreeNodeForGroup(_dataLocker.Groups.First(g => g.ID == dataItem.GroupID));
+                var sourceDataItemNode = GetTreeNodeForDataItem(dataItem);
+         
+                var destGroupNode = GetTreeNodeForGroup(destinationGroup);
+
+                // Changeg group
+                dataItem.GroupID = destinationGroup.ID;
+
+                // Move in TreeView
+                sourceGroupNode.Nodes.Remove(sourceDataItemNode);
+                destGroupNode.Nodes.Add(sourceDataItemNode);
+
+                int xxx = 1000;
+            }
+        }
+
+        public Group SelectedGroup
+        {
+            get
+            {
+                if (GetNodeType(tvwData.SelectedNode) == NodeTypes.Group)
+                {
+                    return (Group)tvwData.SelectedNode.Tag;
+                }
+                return null;
+            }
+        }
+
+        public DataItem SelectedDataItem
+        {
+            get
+            {
+                if (GetNodeType(tvwData.SelectedNode) == NodeTypes.DataItem)
+                {
+                    return (DataItem)tvwData.SelectedNode.Tag;
+                }
+                return null;
+            }
+        }
+
 
         private void addDataItemToolStripMenuItem_Click(object sender, EventArgs e)
         { 
             if (GetNodeType(tvwData.SelectedNode) == NodeTypes.Group)       
             {
-                Group group = (Group)tvwData.SelectedNode.Tag;
+                //Group group = (Group)tvwData.SelectedNode.Tag;
+                Group group = SelectedGroup;
 
                 DataItem dataItem = new DataItem()
                 {
@@ -361,8 +480,10 @@ namespace CFDataLocker.Forms
                     Description = "[New]",
                     GroupID = group.ID,
                     Credentials = new Credentials(),
-                    Contact = new Contact(),
-                    Active = true
+                    Contact = new Contact() {  Address = new Address() },
+                    Active = true,
+                    BankCard = new BankCard(),
+                    SecurityQuestions = new SecurityQuestions() {  Questions = new List<SecurityQuestion>() }
                 };
                 AddDataItem(tvwData.SelectedNode, dataItem);
             }
@@ -445,6 +566,11 @@ namespace CFDataLocker.Forms
                 IOUtilities.OpenDirectoryWithExplorer(Path.GetDirectoryName(file));
                 //IOUtilities.OpenFileWithDefaultTextEditor(file);
             }
+        }
+
+        private void dataItemUserControl1_Load(object sender, EventArgs e)
+        {
+
         }
     }
 }

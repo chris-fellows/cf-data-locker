@@ -32,8 +32,15 @@ namespace CFDataLocker.Controls
         {
             var messages = new List<PropertyMessage>();
 
-            var dataItem = new DataItem() { Contact = new Contact(), Credentials = new Credentials() };
+            var dataItem = new DataItem() 
+            { 
+                Contact = new Contact() {  Address = new Address() },
+                Credentials = new Credentials(), 
+                BankCard= new BankCard(),
+                SecurityQuestions = new SecurityQuestions() {  Questions = new List<SecurityQuestion>() }
+            };
             ViewToModel(dataItem);
+
             if (String.IsNullOrEmpty(dataItem.Description))
             {
                 messages.Add(new PropertyMessage(nameof(DataItem.Description), "Description is invalid or not set"));
@@ -45,6 +52,12 @@ namespace CFDataLocker.Controls
             {
                 messages.Add(new PropertyMessage(nameof(DataItem.URL), "URL is invalid or not set"));
             }
+
+            // Add validation messages for child components
+            messages.AddRange(contactControl1.ValidateBeforeApplyChanges());
+            messages.AddRange(credentialsControl1.ValidateBeforeApplyChanges());
+            messages.AddRange(bankCardControl1.ValidateBeforeApplyChanges());
+            messages.AddRange(securityQuestionsControl1.ValidateBeforeApplyChanges());
 
             return messages;                
         }
@@ -63,36 +76,45 @@ namespace CFDataLocker.Controls
         }
         
         private void ModelToView(DataItem dataItem)
-        {
-            txtUserName.Text = dataItem.Credentials.UserName;
-            txtPassword.Text = dataItem.Credentials.Password;
+        {           
             txtDescription.Text = dataItem.Description;
             txtNotes.Text = dataItem.Notes;
             txtURL.Text = dataItem.URL;
-            txtAccountNumber.Text = dataItem.AccountNumber;
-            txtContactName.Text = dataItem.Contact.Name;
-            txtContactAddress.Text = dataItem.Contact.Address;
-            txtContactEmail.Text = dataItem.Contact.EmailAddress;
-            txtContactTelephone.Text = dataItem.Contact.Telephone;
+            txtAccountNumber.Text = dataItem.AccountNumber;          
             chkActive.Checked = dataItem.Active;
+
+            contactControl1.Contact = _dataItem.Contact;
+
+            credentialsControl1.Credentials = _dataItem.Credentials;
+
+            bankCardControl1.BankCard = _dataItem.BankCard;
+
+            securityQuestionsControl1.SecurityQuestions = _dataItem.SecurityQuestions;
         }
 
         private void ViewToModel(DataItem dataItem)
-        {
-            dataItem.Credentials.UserName = txtUserName.Text;
-            dataItem.Credentials.Password = txtPassword.Text;
+        {          
             dataItem.Description = txtDescription.Text;
             dataItem.Notes = txtNotes.Text;
             dataItem.URL = txtURL.Text;
-            dataItem.AccountNumber = txtAccountNumber.Text;
-            dataItem.Contact.Name = txtContactName.Text;
-            dataItem.Contact.Address = txtContactAddress.Text;
-            dataItem.Contact.EmailAddress = txtContactEmail.Text;
-            dataItem.Contact.Telephone = txtContactTelephone.Text;
+            dataItem.AccountNumber = txtAccountNumber.Text;          
             dataItem.Active = chkActive.Checked;
+
+            contactControl1.ViewToModel(dataItem.Contact);
+
+            credentialsControl1.ViewToModel(dataItem.Credentials);
+
+            bankCardControl1.ViewToModel(dataItem.BankCard);
+
+            securityQuestionsControl1.ViewToModel(dataItem.SecurityQuestions);
         }
 
         private void txtUserName_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void txtNotes_TextChanged(object sender, EventArgs e)
         {
 
         }

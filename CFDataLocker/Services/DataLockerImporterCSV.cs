@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using CFDataLocker.Interfaces;
 using CFDataLocker.Models;
@@ -59,20 +60,60 @@ namespace CFDataLocker.Services
                         AccountNumber = dataTable.Rows[rowIndex]["AccountNumber"].ToString(),
                         Credentials = new Credentials()
                         {
-                            UserName = dataTable.Rows[rowIndex]["UserName"].ToString(),
-                            Password = dataTable.Rows[rowIndex]["Password"].ToString()
+                            UserName = dataTable.Rows[rowIndex]["CredentialsUserName"].ToString(),
+                            Password = dataTable.Rows[rowIndex]["CredentialsPassword"].ToString(),
+                            Pin = dataTable.Rows[rowIndex]["CredentialsPin"].ToString()
                         },
                         Contact = new Contact()
                         {
-                            EmailAddress = dataTable.Rows[rowIndex]["ContactEmail"].ToString(),
+                            Email = dataTable.Rows[rowIndex]["ContactEmail"].ToString(),
                             Name = dataTable.Rows[rowIndex]["ContactName"].ToString(),
-                            Telephone = dataTable.Rows[rowIndex]["ContactTelephone"].ToString()
+                            Telephone = dataTable.Rows[rowIndex]["ContactTelephone"].ToString(),
+                            Address = new Address()
+                            {
+                                Line1 = dataTable.Rows[rowIndex]["ContactAddressLine1"].ToString(),
+                                Line2 = dataTable.Rows[rowIndex]["ContactAddressLine2"].ToString(),
+                                Town = dataTable.Rows[rowIndex]["ContactAddressTown"].ToString(),
+                                County = dataTable.Rows[rowIndex]["ContactAddressCounty"].ToString(),
+                                Postcode = dataTable.Rows[rowIndex]["ContactAddressPostcode"].ToString(),
+                                Country = dataTable.Rows[rowIndex]["ContactAddressCountry"].ToString(),
+                            }
                         },
                         Description = dataTable.Rows[rowIndex]["Description"].ToString(),
                         URL = dataTable.Rows[rowIndex]["URL"].ToString(),
                         Notes = dataTable.Rows[rowIndex]["Notes"].ToString(),
-                        Active = true
+                        Active = true,
+                        BankCard = new BankCard()
+                        {
+                            Name = dataTable.Rows[rowIndex]["BankCardName"].ToString(),
+                            Number = dataTable.Rows[rowIndex]["BankCardNumber"].ToString(),
+                            ExpiryDate = dataTable.Rows[rowIndex]["BankCardExpiryDate"].ToString(),
+                            Security = dataTable.Rows[rowIndex]["BankCardSecurity"].ToString()
+                        },
+                        SecurityQuestions = new SecurityQuestions()
+                        {
+                            Questions = new List<SecurityQuestion>()
+                            {
+                                new SecurityQuestion()
+                                {
+                                    Question =  dataTable.Rows[rowIndex]["SecurityQuestion1Question"].ToString(),
+                                    Answer =  dataTable.Rows[rowIndex]["SecurityQuestion1Answer"].ToString(),
+                                },
+                                new SecurityQuestion()
+                                {
+                                    Question =  dataTable.Rows[rowIndex]["SecurityQuestion2Question"].ToString(),
+                                    Answer =  dataTable.Rows[rowIndex]["SecurityQuestion2Answer"].ToString(),
+                                },
+                                new SecurityQuestion()
+                                {
+                                    Question =  dataTable.Rows[rowIndex]["SecurityQuestion3Question"].ToString(),
+                                    Answer =  dataTable.Rows[rowIndex]["SecurityQuestion3Answer"].ToString(),
+                                }
+                            }
+                        }
                     };
+                    dataItem.SecurityQuestions.Questions.RemoveAll(q => String.IsNullOrEmpty(q.Question));
+
                     document.DataItems.Add(dataItem);
                 }
             }            

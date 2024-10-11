@@ -62,22 +62,36 @@ namespace CFDataLocker.Models
         /// Whether data item is active
         /// </summary>
         [XmlAttribute("Active")]
-        public bool Active { get; set; }       
+        public bool Active { get; set; }
+
+        /// <summary>
+        /// Bank card
+        /// </summary>
+        [XmlElement("BankCard")]
+        public BankCard BankCard { get; set; }
+
+        /// <summary>
+        /// Security questions
+        /// </summary>
+        [XmlElement("SecurityQuestions")]
+        public SecurityQuestions SecurityQuestions { get; set; }
 
         public object Clone()
         {
             return new DataItem()
             {
                 AccountNumber = AccountNumber,
-                Active = Active, 
+                Active = Active,
                 Contact = Contact == null ? null : (Contact)Contact.Clone(),
                 Credentials = Credentials == null ? null : (Credentials)Credentials.Clone(),
                 Description = Description,
                 GroupID = GroupID,
                 ID = ID,
                 Notes = Notes,
-                URL = URL                
-            };
+                URL = URL,
+                BankCard = BankCard == null ? null : (BankCard)BankCard.Clone(),
+                SecurityQuestions = SecurityQuestions == null ? null : (SecurityQuestions)SecurityQuestions.Clone()
+            }; 
         }
         
         public void Encode()
@@ -89,6 +103,8 @@ namespace CFDataLocker.Models
 
             Credentials?.Encode();
             Contact?.Encode();
+            BankCard?.Encode();
+            SecurityQuestions?.Encode();
         }
         
         public void Decode()
@@ -99,7 +115,9 @@ namespace CFDataLocker.Models
             URL = String.IsNullOrEmpty(URL) ? URL : StringUtilities.DecodeFromBase64(URL);
 
             Credentials?.Decode();
-            Contact?.Decode();       
+            Contact?.Decode();
+            BankCard?.Decode();
+            SecurityQuestions?.Decode();
         }
     }
 }

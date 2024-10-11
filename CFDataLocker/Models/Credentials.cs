@@ -20,12 +20,16 @@ namespace CFDataLocker.Models
         [XmlAttribute("Password")]
         public string Password { get; set; }
 
+        [XmlAttribute("Pin")]
+        public string Pin { get; set; }
+
         public object Clone()
         {
             return new Credentials()
             {
                 Password = Password,
-                UserName = UserName
+                UserName = UserName,
+                Pin = Pin
             };
         }
 
@@ -33,12 +37,14 @@ namespace CFDataLocker.Models
         {
             this.Password = String.IsNullOrEmpty(this.Password) ? this.Password : StringUtilities.EncodeToBase64(this.Password);
             this.UserName = String.IsNullOrEmpty(this.UserName) ? this.UserName : StringUtilities.EncodeToBase64(this.UserName);
+            this.Pin = String.IsNullOrEmpty(this.Pin) ? this.Pin : StringUtilities.EncodeToBase64(this.Pin);
         }
 
         public void Decode()
         {
             this.Password = String.IsNullOrEmpty(this.Password) ? this.Password : StringUtilities.DecodeFromBase64(this.Password);
             this.UserName = String.IsNullOrEmpty(this.UserName) ? this.UserName : StringUtilities.DecodeFromBase64(this.UserName);
+            this.Pin = String.IsNullOrEmpty(this.Pin) ? this.Pin : StringUtilities.DecodeFromBase64(this.Pin);
         }
     }
 }
